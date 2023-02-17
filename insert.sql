@@ -27,12 +27,10 @@ INSERT INTO location (location_name, latitude, longitude, bus_id) VALUES ('Cuatr
 INSERT INTO location (location_name, latitude, longitude, bus_id) VALUES ('Picadas y algo más', '4.157906', '-73.637702', 4);
 INSERT INTO location (location_name, latitude, longitude, bus_id) VALUES ('Frente Bomba Texaco', '4.156651', '-73.632235', 4);
 INSERT INTO location (location_name, latitude, longitude, bus_id) VALUES ('Droguería la Providencia', '4.151178', '-73.628527', 4);
-INSERT INTO location (location_name, latitude, longitude, bus_id) VALUES ('Yamaha Jordán', '4.148175', '-73.624406', 4);
 INSERT INTO location (location_name, latitude, longitude, bus_id) VALUES ('Paradero busetas COFREM', '4.147615', '-73.620722', 4);
 
 INSERT INTO buses (bus_name) VALUES('Terminal');
 INSERT INTO location (location_name, latitude, longitude, bus_id) VALUES ('Yamaha Jordán', '4.148175' , '-73.624406', 5);
-INSERT INTO location (location_name, latitude, longitude, bus_id) VALUES ('Paradero busetas COFREM', '4.147615' , '-73.620722', 5);
 INSERT INTO location (location_name, latitude, longitude, bus_id) VALUES ('Paradero buses Hato Grande', '4.1470082', '-73.6168287', 5);
 INSERT INTO location (location_name, latitude, longitude, bus_id) VALUES ('Frente a Olimpica', '4.1461767', '-73.6112503', 5);
 INSERT INTO location (location_name, latitude, longitude, bus_id) VALUES ('Semaforo Manantial', '4.1453019', '-73.6066442', 5);
