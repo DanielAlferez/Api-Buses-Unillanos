@@ -19,37 +19,48 @@ CORS(app, supports_credentials=True)
 
 server_session = Session(app)
 
+def execute_sql_file(filename):
+    """
+    Execute an SQL script from a file
+    """
+    conn = psycopg2.connect(
+        host="localhost",
+        port="5432",
+        user="daniel",
+        password="7447",
+        dbname="buses"
+    )
+    with open(filename, 'r') as f:
+        
+        sql = f.read()
+        cur = conn.cursor()
+        cur.execute(sql)
+        cur.close()
+        conn.commit()
+
 
 def check_db():
     db_ready = False
     while not db_ready:
         try:
             conn = psycopg2.connect(
-                host="db",
+                host="localhost",
                 port="5432",
                 user="daniel",
                 password="7447",
                 dbname="buses"
             )
-            
-
-            with app.app_context():
-                db.create_all()
-
-            with open("insert.sql", "r") as f:
-                datos_sql = f.read()
-
-            cur = conn.cursor()
-            cur.execute(datos_sql)
-            cur.close()
             conn.close()
-
             print("Database is up!")
             db_ready = True
         except psycopg2.OperationalError:
             print("Waiting for database...")
             time.sleep(1)
+
+    with app.app_context():
+        db.create_all()
         
+    
 
 db.init_app(app)
 
