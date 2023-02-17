@@ -1,4 +1,4 @@
-from flask import Flask, request, session
+from flask import Flask, request
 from flask.json import jsonify
 from flask_session import Session
 from flask_cors import CORS
@@ -12,51 +12,37 @@ app = Flask(__name__)
 app.config.from_object(ApplicationConfig)
 
 bcrypt = Bcrypt(app)
+
 CORS(app, supports_credentials=True)
+
 server_session = Session(app)
+
 db.init_app(app)
 
 with app.app_context():
     db.create_all()
-
-
-@app.route("/@me", methods=["GET"])
-def get_current_user():
-    user_id = session.get("user_id")
-
-    if not user_id:
-        return jsonify({"error": "No autorizado"}), 409
-    
-    user = User.query.filter_by(id=user_id).first()
-
-    return jsonify({
-        "id": user.id,
-        "name": user.name,
-        "email": user.email,
-    })
-
 
 @app.route("/register", methods=["POST"])
 def register_user():
     email = request.json["email"]
     name = request.json["name"]
     password = request.json["password"]
+    role = request.json["role"]
 
-    user_exists = User.query.filter_by(email=email).first() is not None
+    user_exists = Users.query.filter_by(email=email).first() is not None
 
     if user_exists:
         return jsonify({"error": "Usuario ya existe"}), 409
     
-    hashed_password = bcrypt.generate_password_hash(password)
+    hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
 
-    new_user = User(email=email, name=name, password=hashed_password)
+    new_user = Users(email=email, name=name, password=hashed_password, role=role)
     db.session.add(new_user)
     db.session.commit()
+
     return jsonify({
-        "id": new_user.id,
-        "name": new_user.name,
-        "email": new_user.email,
-    })
+        "message": "Usuario registrado"
+    }), 200
 
 
 @app.route("/login", methods=["POST"])
@@ -64,26 +50,21 @@ def login_user():
     email = request.json["email"]
     password = request.json["password"]
 
-    user = User.query.filter_by(email=email).first()
+    user = Users.query.filter_by(email=email).first()
 
     if user is None:
         return jsonify({"error": "No autorizado"}), 401
     
     if not bcrypt.check_password_hash(user.password, password):
+
         return jsonify({"error": "No autorizado"}), 401
-    
-    session["user_id"] = user.id
     
     return jsonify({
         "id": user.id,
+        "name": user.name,
         "email": user.email,
-    }) 
-
-
-@app.route("/logout", methods=["POST"])
-def logout_user():
-    session.pop("user_id")
-    return "200"
+        "role": user.role
+    }), 200
 
 
 @app.route("/buses", methods=["GET"])
@@ -127,6 +108,42 @@ def create_bus():
         "message": "Bus añadido exitosamente"
     })
 
+
+@app.route("/update-bus", methods=["PUT"])
+def update_bus():
+    bus_id = request.json["bus_id"]
+    bus_name = request.json["bus_name"]
+
+    bus = Buses.query.get(bus_id)
+
+    if not bus:
+        return jsonify({"error": "Bus no encontrado"}), 404
+    
+    bus.bus_name = bus_name
+    db.session.commit()
+    return  jsonify({"message": "Actualizado"}), 200
+
+
+@app.route("/delete-bus", methods=["DELETE"])
+def delete_bus():
+    print(request.json)
+    bus_id = request.json["bus_id"]
+
+    bus = Buses.query.get(bus_id)
+
+    if bus is None:
+        return jsonify({"error": "No existe el bus"}), 404
+    
+    try:
+        db.session.delete(bus)
+        db.session.commit()
+    except:
+        db.session.rollback()
+        return  jsonify({"error": "Error al borrar el bus"}), 500
+    
+    return jsonify({"message": "Se ha borrado el bus"}), 200
+
+
 @app.route("/hours", methods=["GET"])
 def get_hours():
     hours = Hours.query.all()
@@ -169,6 +186,25 @@ def create_hour():
     })
 
 
+@app.route("/delete-hour", methods=["DELETE"])
+def delete_hour():
+    hour_id = request.json["hour_id"]
+
+    hour = Hours.query.get(hour_id)
+
+    if hour is None:
+        return jsonify({"error": "No existe la hora"}), 404
+    
+    try:
+        db.session.delete(hour)
+        db.session.commit()
+    except:
+        db.session.rollback()
+        return  jsonify({"error": "Error al borrar la hora"}), 500
+    
+    return jsonify({"message": "Se ha borrado la hora"}), 200
+
+
 @app.route("/locations", methods=["GET"])
 def get_locations():
     locations = Location.query.all()
@@ -202,6 +238,7 @@ def get_location(location_id):
 
 @app.route("/create-location", methods=["POST"])
 def create_location():
+    print(request.json)
     location_name = request.json["location_name"]
     latitude = request.json["latitude"]
     longitude = request.json["longitude"]
@@ -221,7 +258,46 @@ def create_location():
     })
 
 
-@app.route("/buses_hours", methods=["GET"])
+@app.route("/update-location", methods=["PUT"])
+def update_location():
+    location_id = request.json["location_id"]
+    location_name = request.json["location_name"]
+    latitude = request.json["latitude"]
+    longitude = request.json["longitude"]
+
+    location = Location.query.get(location_id)
+
+    if not location:
+        return jsonify({"error": "Bus no encontrado"}), 404
+    
+    location.location_name = location_name
+    location.latitude = latitude
+    location.longitude = longitude
+
+    db.session.commit()
+    return  jsonify({"message": "Actualizado"}), 200
+
+
+@app.route("/delete-location", methods=["DELETE"])
+def delete_location():
+    location_id = request.json["location_id"]
+
+    location = Location.query.get(location_id)
+
+    if location is None:
+        return jsonify({"error": "No existe la ubicación"}), 404
+    
+    try:
+        db.session.delete(location)
+        db.session.commit()
+    except:
+        db.session.rollback()
+        return  jsonify({"error": "Error al borrar la ubicación"}), 500
+    
+    return jsonify({"message": "Se ha borrado la ubicación"}), 200
+
+
+@app.route("/buses-hours", methods=["GET"])
 def get_buses_hours():
     buses_hours = BusesHours.query.all()
     serialized_buses_hours = []
@@ -235,7 +311,7 @@ def get_buses_hours():
     return jsonify(serialized_buses_hours)
 
 
-@app.route("/buses_hours/<int:bus_id>", methods=["GET"])
+@app.route("/buses-hours/<int:bus_id>", methods=["GET"])
 def get_bus_hour(bus_id):
 
     bus_hours = BusesHours.query.filter_by(bus_id=bus_id).all()
@@ -253,7 +329,7 @@ def get_bus_hour(bus_id):
     })
 
 
-@app.route("/create_bus_hour", methods=["POST"])
+@app.route("/create-bus-hour", methods=["POST"])
 def create_bus_hour():
     bus_id = request.json["bus_id"]
     hour_id = request.json["hour_id"]
@@ -267,7 +343,27 @@ def create_bus_hour():
     })
 
 
-@app.route("/info_buses", methods=["GET"])
+@app.route("/delete-bus-hour", methods=["DELETE"])
+def delete_bus_hour():
+    bus_id = request.json["bus_id"]
+    hour_id = request.json["hour_id"]
+
+    bus_hour = BusesHours.query.filter_by(bus_id=bus_id, hour_id=hour_id).first()
+    
+    if bus_hour is None:
+        return jsonify({"error": "No existe la hora en el bus seleccionado"}), 404
+    
+    try:
+        db.session.delete(bus_hour)
+        db.session.commit()
+    except:
+        db.session.rollback()
+        return  jsonify({"error": "Error al borrar la hora en el bus seleccionado"}), 500
+    
+    return jsonify({"message": "Se ha borrado la hora en el bus seleccionado"}), 200
+
+
+@app.route("/info-buses", methods=["GET"])
 def get_info_buses():
 
     buses = Buses.query.all()
@@ -305,5 +401,6 @@ def get_info_buses():
 
     return serialized_buses
 
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, port=8000)

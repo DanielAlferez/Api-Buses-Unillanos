@@ -1,0 +1,11 @@
+INSERT INTO buses VALUES('Viva');
+INSERT INTO location VALUES ('Boutique Revival', '4.124263', '-73.634550', 1);
+
+INSERT INTO buses VALUES('Villacentro');
+INSERT INTO buses VALUES('Porfia');
+INSERT INTO buses VALUES('Grama');
+INSERT INTO buses VALUES('Terminal');
+INSERT INTO buses VALUES('Covisan');
+INSERT INTO buses VALUES('Maracos');
+INSERT INTO buses VALUES('Montecarlo');
+
