@@ -25,7 +25,7 @@ def check_db():
     while not db_ready:
         try:
             conn = psycopg2.connect(
-                host="db",
+                host="bd",
                 port="5432",
                 user="daniel",
                 password="7447",
