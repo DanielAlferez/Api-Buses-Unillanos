@@ -19,10 +19,29 @@ CORS(app, supports_credentials=True)
 
 server_session = Session(app)
 
-db.init_app(app)
 
-with app.app_context():
-    db.create_all()
+def check_db():
+    db_ready = False
+    while not db_ready:
+        try:
+            conn = psycopg2.connect(
+                host="db",
+                port="5432",
+                user="daniel",
+                password="7447",
+                dbname="buses"
+            )
+            conn.close()
+            print("Database is up!")
+            db_ready = True
+        except psycopg2.OperationalError:
+            print("Waiting for database...")
+            time.sleep(1)
+
+    with app.app_context():
+        db.create_all()
+
+db.init_app(app)
 
 @app.route("/register", methods=["POST"])
 def register_user():
@@ -403,25 +422,7 @@ def get_info_buses():
 
     return serialized_buses
 
-db_config = {
-    'host': 'db',
-    'port': '5432',
-    'database': 'buses',
-    'user': 'daniel',
-    'password': '7447'
-}
-
-# Función que espera a que la base de datos esté disponible
-def wait_for_db():
-    while True:
-        try:
-            conn = psycopg2.connect(**db_config)
-            conn.close()
-            break
-        except psycopg2.OperationalError:
-            time.sleep(1)
-
 
 if __name__ == "__main__":
-    wait_for_db()
+    check_db()
     app.run(host='0.0.0.0', port=8000)
