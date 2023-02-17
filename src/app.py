@@ -5,6 +5,8 @@ from flask_cors import CORS
 from flask_bcrypt import Bcrypt
 from models import *
 from config import ApplicationConfig
+import psycopg2
+import time
 
 app = Flask(__name__)
 
@@ -401,6 +403,25 @@ def get_info_buses():
 
     return serialized_buses
 
+db_config = {
+    'host': 'db',
+    'port': '5432',
+    'database': 'buses',
+    'user': 'daniel',
+    'password': '7447'
+}
+
+# Función que espera a que la base de datos esté disponible
+def wait_for_db():
+    while True:
+        try:
+            conn = psycopg2.connect(**db_config)
+            conn.close()
+            break
+        except psycopg2.OperationalError:
+            time.sleep(1)
+
 
 if __name__ == "__main__":
+    wait_for_db()
     app.run(host='0.0.0.0', port=8000)
