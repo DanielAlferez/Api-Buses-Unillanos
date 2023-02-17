@@ -31,15 +31,25 @@ def check_db():
                 password="7447",
                 dbname="buses"
             )
+            
+
+            with app.app_context():
+                db.create_all()
+
+            with open("insert.sql", "r") as f:
+                datos_sql = f.read()
+
+            cur = conn.cursor()
+            cur.execute(datos_sql)
+            cur.close()
             conn.close()
+
             print("Database is up!")
             db_ready = True
         except psycopg2.OperationalError:
             print("Waiting for database...")
             time.sleep(1)
-
-    with app.app_context():
-        db.create_all()
+        
 
 db.init_app(app)
 
