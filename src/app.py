@@ -24,7 +24,7 @@ def execute_sql_file(filename):
     Execute an SQL script from a file
     """
     conn = psycopg2.connect(
-        host="localhost",
+        host="db",
         port="5432",
         user="daniel",
         password="7447",
@@ -44,7 +44,7 @@ def check_db():
     while not db_ready:
         try:
             conn = psycopg2.connect(
-                host="localhost",
+                host="db",
                 port="5432",
                 user="daniel",
                 password="7447",
