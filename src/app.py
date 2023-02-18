@@ -59,6 +59,7 @@ def check_db():
 
     with app.app_context():
         db.create_all()
+        execute_sql_file('/app/src/insert.sql')
         
     
 
